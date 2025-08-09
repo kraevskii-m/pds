@@ -69,6 +69,16 @@ skips = ["B101"]
 convention = "google"
 add_ignore = ["D100", "D104"]
 
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
 [tool.ruff.lint]
 select = ["E", "F", "W", "C", "I", "N", "D", "UP", "S"]
 ignore = ["D100", "D104"]
+
+[tool.ruff.format]
+quote-style = "double"            # или "single"
+indent-style = "space"            # "space" или "tab"
+line-ending = "lf"                 # "lf", "crlf", "native"
+docstring-code-format = true       # форматировать код в докстрингах

@@ -12,8 +12,8 @@ class ProvisionType(Enum):
     """Types of infrastructure provisioning."""
 
     TERRAFORM = "terraform"  # Full Terraform provider (DO, AWS, etc.)
-    API = "api"             # Custom API calls + Ansible
-    MANUAL = "manual"       # User-provided servers + Ansible only
+    API = "api"  # Custom API calls + Ansible
+    MANUAL = "manual"  # User-provided servers + Ansible only
 
 
 @dataclass
@@ -70,7 +70,7 @@ class CloudProvider(ABC):
     @property
     def required_env_vars(self) -> list[str]:
         """Required environment variables for authentication.
-        
+
         Can be empty for manual providers.
         """
         return []
@@ -78,7 +78,7 @@ class CloudProvider(ABC):
     @abstractmethod
     def validate_config(self, config: PDSConfig) -> list[str]:
         """Validate provider-specific configuration.
-        
+
         Returns:
             List of validation errors (empty if valid)
 
@@ -86,32 +86,42 @@ class CloudProvider(ABC):
         pass
 
     @abstractmethod
-    def provision_infrastructure(self, config: PDSConfig, env: str = "production") -> InfrastructureInfo:
+    def provision_infrastructure(
+        self, config: PDSConfig, env: str = "production"
+    ) -> InfrastructureInfo:
         """Provision infrastructure using the appropriate method for this provider.
-        
+
         For TERRAFORM providers: Generate and run Terraform
-        For API providers: Make API calls to create resources  
+        For API providers: Make API calls to create resources
         For MANUAL providers: Parse existing server configuration
-        
+
         Returns:
             InfrastructureInfo with all server details
 
         """
         pass
 
-    def generate_terraform(self, config: PDSConfig, env: str = "production") -> str | None:
+    def generate_terraform(
+        self, config: PDSConfig, env: str = "production"
+    ) -> str | None:
         """Generate Terraform configuration (only for TERRAFORM providers)."""
         if self.provision_type == ProvisionType.TERRAFORM:
-            raise NotImplementedError("Terraform providers must implement generate_terraform")
+            raise NotImplementedError(
+                "Terraform providers must implement generate_terraform"
+            )
         return None
 
     @abstractmethod
-    def get_ansible_inventory(self, infra_info: InfrastructureInfo, config: PDSConfig) -> dict[str, Any]:
+    def get_ansible_inventory(
+        self, infra_info: InfrastructureInfo, config: PDSConfig
+    ) -> dict[str, Any]:
         """Generate Ansible inventory from infrastructure info."""
         pass
 
     @abstractmethod
-    def get_ansible_vars(self, infra_info: InfrastructureInfo, config: PDSConfig, env: str = "production") -> dict[str, Any]:
+    def get_ansible_vars(
+        self, infra_info: InfrastructureInfo, config: PDSConfig, env: str = "production"
+    ) -> dict[str, Any]:
         """Get Ansible variables for deployment."""
         pass
 
@@ -119,7 +129,9 @@ class CloudProvider(ABC):
         """Get provider-specific hooks."""
         return []
 
-    def cleanup_infrastructure(self, config: PDSConfig, env: str = "production") -> None:
+    def cleanup_infrastructure(
+        self, config: PDSConfig, env: str = "production"
+    ) -> None:
         """Clean up provisioned infrastructure."""
         pass
 
@@ -134,12 +146,16 @@ class ProxyPlugin(ABC):
         pass
 
     @abstractmethod
-    def generate_config(self, config: PDSConfig, infra_info: InfrastructureInfo, env: str = "production") -> str:
+    def generate_config(
+        self, config: PDSConfig, infra_info: InfrastructureInfo, env: str = "production"
+    ) -> str:
         """Generate proxy configuration."""
         pass
 
     @abstractmethod
-    def get_ansible_tasks(self, config: PDSConfig, infra_info: InfrastructureInfo, env: str = "production") -> list[dict]:
+    def get_ansible_tasks(
+        self, config: PDSConfig, infra_info: InfrastructureInfo, env: str = "production"
+    ) -> list[dict]:
         """Get Ansible tasks for proxy setup."""
         pass
 
@@ -154,7 +170,9 @@ class MonitoringPlugin(ABC):
         pass
 
     @abstractmethod
-    def get_ansible_tasks(self, config: PDSConfig, infra_info: InfrastructureInfo, env: str = "production") -> list[dict]:
+    def get_ansible_tasks(
+        self, config: PDSConfig, infra_info: InfrastructureInfo, env: str = "production"
+    ) -> list[dict]:
         """Get Ansible tasks for monitoring setup."""
         pass
 

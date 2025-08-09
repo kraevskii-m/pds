@@ -31,7 +31,9 @@ class ManualProvider(CloudProvider):
         errors = []
 
         if not config.infrastructure.servers:
-            errors.append("Manual provider requires 'servers' list in infrastructure config")
+            errors.append(
+                "Manual provider requires 'servers' list in infrastructure config"
+            )
             return errors
 
         # Validate each server config
@@ -46,23 +48,31 @@ class ManualProvider(CloudProvider):
 
         return errors
 
-    def provision_infrastructure(self, config: PDSConfig, env: str = "production") -> InfrastructureInfo:
+    def provision_infrastructure(
+        self, config: PDSConfig, env: str = "production"
+    ) -> InfrastructureInfo:
         """Parse existing server configuration for manual provider."""
         servers = []
 
         for i, server_config in enumerate(config.infrastructure.servers):
-            servers.append(ServerInfo(
-                ip=server_config.ip,
-                ssh_user=server_config.user,
-                ssh_key_path=server_config.ssh_key or "~/.ssh/id_rsa",
-                ssh_port=server_config.port,
-                hostname=f"{config.project}-{env}-{i + 1}",
-                tags={"provider": "manual", "project": config.project, "env": env}
-            ))
+            servers.append(
+                ServerInfo(
+                    ip=server_config.ip,
+                    ssh_user=server_config.user,
+                    ssh_key_path=server_config.ssh_key or "~/.ssh/id_rsa",
+                    ssh_port=server_config.port,
+                    hostname=f"{config.project}-{env}-{i + 1}",
+                    tags={"provider": "manual", "project": config.project, "env": env},
+                )
+            )
 
         # For manual provider, load balancer IP might be manually configured
         load_balancer_ip = None
-        if config.networking and config.networking.load_balancer and config.networking.load_balancer.external_ip:
+        if (
+            config.networking
+            and config.networking.load_balancer
+            and config.networking.load_balancer.external_ip
+        ):
             load_balancer_ip = config.networking.load_balancer.external_ip
 
         # Database connections for manual setup
@@ -74,7 +84,9 @@ class ManualProvider(CloudProvider):
                 if db.type == "postgres":
                     database_connection = f"postgresql://{db.user}:{db.password}@{db.host}:{port}/{db.name}"
                 else:
-                    database_connection = f"mysql://{db.user}:{db.password}@{db.host}:{port}/{db.name}"
+                    database_connection = (
+                        f"mysql://{db.user}:{db.password}@{db.host}:{port}/{db.name}"
+                    )
 
         # Redis connection for manual setup
         redis_connection = None
@@ -91,20 +103,14 @@ class ManualProvider(CloudProvider):
             servers=servers,
             load_balancer_ip=load_balancer_ip,
             database_connection=database_connection,
-            redis_connection=redis_connection
+            redis_connection=redis_connection,
         )
 
-    def get_ansible_inventory(self, infra_info: InfrastructureInfo, config: PDSConfig) -> dict[str, Any]:
+    def get_ansible_inventory(
+        self, infra_info: InfrastructureInfo, config: PDSConfig
+    ) -> dict[str, Any]:
         """Generate Ansible inventory for manual servers."""
-        inventory = {
-            "all": {
-                "children": {
-                    "app_servers": {
-                        "hosts": {}
-                    }
-                }
-            }
-        }
+        inventory = {"all": {"children": {"app_servers": {"hosts": {}}}}}
 
         for i, server in enumerate(infra_info.servers):
             inventory["all"]["children"]["app_servers"]["hosts"][f"server-{i + 1}"] = {
@@ -112,13 +118,14 @@ class ManualProvider(CloudProvider):
                 "ansible_user": server.ssh_user,
                 "ansible_ssh_private_key_file": server.ssh_key_path,
                 "ansible_port": server.ssh_port,
-                "hostname": server.hostname
+                "hostname": server.hostname,
             }
 
         return inventory
 
-    def get_ansible_vars(self, infra_info: InfrastructureInfo, config: PDSConfig, env: str = "production") -> dict[
-        str, Any]:
+    def get_ansible_vars(
+        self, infra_info: InfrastructureInfo, config: PDSConfig, env: str = "production"
+    ) -> dict[str, Any]:
         """Get Ansible variables for manual deployment."""
         return {
             "cloud_provider": "manual",
@@ -129,6 +136,7 @@ class ManualProvider(CloudProvider):
             "database_connection": infra_info.database_connection,
             "redis_connection": infra_info.redis_connection,
             "has_database": config.infrastructure.database is not None,
-            "has_redis": config.infrastructure.redis and config.infrastructure.redis.enabled,
+            "has_redis": config.infrastructure.redis
+            and config.infrastructure.redis.enabled,
             "manual_setup": True,
         }

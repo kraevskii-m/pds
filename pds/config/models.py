@@ -1,6 +1,5 @@
 """Pydantic models for PDS configuration."""
 
-
 from pydantic import BaseModel, Field
 
 
@@ -9,7 +8,9 @@ class ServerConfig(BaseModel):
 
     ip: str = Field(description="Server IP address")
     user: str = Field(default="root", description="SSH user")
-    ssh_key: str | None = Field(default="~/.ssh/id_rsa", description="SSH private key path")
+    ssh_key: str | None = Field(
+        default="~/.ssh/id_rsa", description="SSH private key path"
+    )
     port: int = Field(default=22, description="SSH port")
 
 
@@ -63,7 +64,9 @@ class NetworkingConfig(BaseModel):
         cert_path: str | None = None
         key_path: str | None = None
 
-    proxy: str = Field(default="caddy", description="Proxy type (caddy, nginx, traefik)")
+    proxy: str = Field(
+        default="caddy", description="Proxy type (caddy, nginx, traefik)"
+    )
     load_balancer: LoadBalancer = LoadBalancer()
     ssl: SSL = SSL()
     rate_limiting: dict | None = None
@@ -86,7 +89,10 @@ class MonitoringConfig(BaseModel):
     class Logs(BaseModel):
         centralized: bool = False
 
-    type: str = Field(default="none", description="Monitoring type (uptime-kuma, prometheus-grafana, none)")
+    type: str = Field(
+        default="none",
+        description="Monitoring type (uptime-kuma, prometheus-grafana, none)",
+    )
     metrics: Metrics = Metrics()
     logs: Logs = Logs()
     alerts: dict[str, str] | None = None
@@ -150,7 +156,11 @@ class PDSConfig(BaseModel):
         # Validate that manual provider has servers or instances
         if self.provider == "manual":
             if not self.infrastructure.servers:
-                raise ValueError("Manual provider requires 'servers' list in infrastructure")
+                raise ValueError(
+                    "Manual provider requires 'servers' list in infrastructure"
+                )
         else:
             if not self.infrastructure.instances:
-                raise ValueError(f"Provider '{self.provider}' requires 'instances' count in infrastructure")
+                raise ValueError(
+                    f"Provider '{self.provider}' requires 'instances' count in infrastructure"
+                )
