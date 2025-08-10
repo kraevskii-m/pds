@@ -1,0 +1,16 @@
+project: test-app
+provider: digitalocean
+region: nyc1
+  
+infrastructure:
+  instances: 2
+  size: s-2vcpu-2gb
+  database:
+    type: postgres
+    version: "15"
+
+applications:
+  web:
+    repo: https://github.com/user/app
+    type: static
+    build_command: npm run build
