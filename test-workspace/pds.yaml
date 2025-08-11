@@ -10,7 +10,41 @@ infrastructure:
     version: "15"
 
 applications:
+  # Docker-first approach (default)
+  api:
+    repo: https://github.com/user/backend
+    type: api
+    dockerfile: Dockerfile  # default value
+    port: 8000
+    health_check: /api/health
+    registry: ghcr.io/user/backend
+    build_on: server  # or 'ci' for build in CI/CD
+    
+  # Static app with Docker build
   web:
-    repo: https://github.com/user/app
+    repo: https://github.com/user/frontend
     type: static
-    build_command: npm run build
+    dockerfile: Dockerfile  # builds and serves static files
+    build_command: npm run build  # runs inside Docker
+    
+  # Private repo example
+  worker:
+    repo: git@github.com:company/worker.git
+    type: service
+    git_ssh_key: ~/.ssh/deploy_key
+    dockerfile: Dockerfile
+    
+  # Pre-built artifacts from CI
+  admin:
+    source: https://releases.company.com/admin-v1.2.tar.gz
+    type: static  
+    dockerfile: Dockerfile
+    
+  # Legacy app without Docker (discouraged)
+  legacy:
+    repo: https://github.com/user/old-app
+    type: service
+    dockerfile: "null"  # explicitly disable Docker
+    runtime: node
+    port: 3000
+    build_command: npm install && npm run build

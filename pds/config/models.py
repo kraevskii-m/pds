@@ -23,7 +23,9 @@ class InfrastructureConfig(BaseModel):
     volume_size: int | None = Field(default=20, description="Volume size in GB")
 
     # For manual providers
-    servers: list[ServerConfig] | None = Field(description="Manual server list")
+    servers: list[ServerConfig] | None = Field(
+        default=None, description="Manual server list"
+    )
 
     class Database(BaseModel):
         """Database config."""
@@ -113,20 +115,74 @@ class MonitoringConfig(BaseModel):
 class ApplicationConfig(BaseModel):
     """Single application configuration."""
 
-    repo: str = Field(description="Git repository URL")
+    # Source configuration - either Git repo OR pre-built artifacts
+    repo: str | None = Field(default=None, description="Git repository URL")
+    source: str | None = Field(default=None, description="Pre-built artifacts path/URL")
     branch: str = "main"
-    type: str = Field(description="App type (static, service, api)")
 
-    # Build configuration
-    build_command: str | None = None
-    build_output: str | None = None
-    dockerfile: str | None = None
+    # Deployment strategy
+    type: str = Field(description="App type (static, service, api)")
+    dockerfile: str = Field(
+        default="Dockerfile", description="Dockerfile path (use 'null' for non-Docker)"
+    )
+
+    # Git authentication (for private repos)
+    git_ssh_key: str | None = Field(
+        default=None, description="SSH key for private Git repos"
+    )
+    git_token: str | None = Field(
+        default=None, description="Personal Access Token for HTTPS repos"
+    )
+    git_username: str | None = Field(
+        default=None, description="Git username for HTTPS auth"
+    )
+
+    # Docker configuration
+    registry: str | None = Field(
+        default=None, description="Docker registry (ghcr.io/user/app)"
+    )
+    build_on: str = Field(
+        default="server", description="Where to build: server, ci, local"
+    )
+    image_tag: str | None = Field(
+        default=None, description="Specific image tag (defaults to git commit)"
+    )
+
+    # Legacy build configuration (for non-Docker apps)
+    build_command: str | None = Field(
+        default=None, description="Build command for non-Docker apps"
+    )
+    build_output: str | None = Field(
+        default=None, description="Build output directory for static apps"
+    )
+    runtime: str | None = Field(
+        default=None, description="Runtime for non-Docker apps (node, python)"
+    )
 
     # Runtime configuration
     port: int | None = None
     health_check: str | None = None
     env: dict[str, str] | None = None
     secrets: list[str] | None = None
+
+    def model_post_init(self, __context) -> None:
+        """Validate application configuration."""
+        # Must have either repo or source
+        if not self.repo and not self.source:
+            raise ValueError("Application must specify either 'repo' or 'source'")
+
+        # Can't have both repo and source
+        if self.repo and self.source:
+            raise ValueError("Application cannot specify both 'repo' and 'source'")
+
+        # Dockerfile validation
+        if self.dockerfile == "null":
+            # Legacy mode - require runtime for services
+            if self.type in ["service", "api"] and not self.runtime:
+                raise ValueError(f"Non-Docker {self.type} apps must specify 'runtime'")
+        else:
+            # Docker mode - dockerfile must exist (validation happens during deployment)
+            pass
 
 
 class DomainConfig(BaseModel):
