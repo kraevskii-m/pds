@@ -16,14 +16,17 @@ class ManualProvider(CloudProvider):
 
     @property
     def name(self) -> str:
+        """:return:"""
         return "manual"
 
     @property
     def provision_type(self) -> ProvisionType:
+        """:return:"""
         return ProvisionType.MANUAL
 
     @property
     def required_env_vars(self) -> list[str]:
+        """:return:"""
         return []  # No API keys needed for manual
 
     def validate_config(self, config: PDSConfig) -> list[str]:

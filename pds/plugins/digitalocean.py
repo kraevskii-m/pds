@@ -16,14 +16,17 @@ class DigitalOceanProvider(CloudProvider):
 
     @property
     def name(self) -> str:
+        """:return:"""
         return "digitalocean"
 
     @property
     def provision_type(self) -> ProvisionType:
+        """:return:"""
         return ProvisionType.TERRAFORM
 
     @property
     def required_env_vars(self) -> list[str]:
+        """:return:"""
         return ["DIGITALOCEAN_TOKEN"]
 
     def validate_config(self, config: PDSConfig) -> list[str]:
@@ -68,7 +71,8 @@ class DigitalOceanProvider(CloudProvider):
             db_type = config.infrastructure.database.type
             if db_type not in ["postgres", "mysql"]:
                 errors.append(
-                    f"Unsupported database type for DO: {db_type}. Use postgres or mysql"
+                    f"Unsupported database type for DO: {db_type}."
+                    f" Use postgres or mysql"
                 )
 
         return errors
@@ -111,7 +115,7 @@ resource "digitalocean_droplet" "app" {{
   region = "{config.region}"
   size   = "{config.infrastructure.size}"
   vpc_uuid = digitalocean_vpc.{config.project}_vpc.id
-  ssh_keys = [digitalocean_ssh_key.{config.project}_key.fingerprint]  
+  ssh_keys = [digitalocean_ssh_key.{config.project}_key.fingerprint]
   tags = ["{config.project}", "{env}", "app"]
 }}
 '''
@@ -161,12 +165,12 @@ resource "digitalocean_database_cluster" "{config.project}_db" {{
   version    = "{db_config.version or self._get_default_db_version(db_config.type)}"
   size       = "{db_config.size or "db-s-1vcpu-1gb"}"
   region     = "{config.region}"
-  node_count = 1  
+  node_count = 1
   tags = ["{config.project}", "{env}", "database"]
 }}
 
 resource "digitalocean_database_firewall" "{config.project}_db_fw" {{
-  cluster_id = digitalocean_database_cluster.{config.project}_db.id  
+  cluster_id = digitalocean_database_cluster.{config.project}_db.id
   dynamic "rule" {{
     for_each = digitalocean_droplet.app
     content {{
@@ -187,7 +191,7 @@ resource "digitalocean_database_cluster" "{config.project}_redis" {{
   version    = "7"
   size       = "{config.infrastructure.redis.size or "db-s-1vcpu-1gb"}"
   region     = "{config.region}"
-  node_count = 1  
+  node_count = 1
   tags = ["{config.project}", "{env}", "redis"]
 }}
 '''

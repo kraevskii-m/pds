@@ -26,6 +26,8 @@ class InfrastructureConfig(BaseModel):
     servers: list[ServerConfig] | None = Field(description="Manual server list")
 
     class Database(BaseModel):
+        """Database config."""
+
         type: str = Field(description="Database type (postgres, mysql)")
         version: str | None = None
         size: str | None = None
@@ -37,6 +39,8 @@ class InfrastructureConfig(BaseModel):
         password: str | None = None
 
     class Redis(BaseModel):
+        """Cache Config."""
+
         enabled: bool = False
         size: str | None = None
         # For manual setup
@@ -52,12 +56,16 @@ class NetworkingConfig(BaseModel):
     """Networking and proxy configuration."""
 
     class LoadBalancer(BaseModel):
+        """LoadBalancer config."""
+
         algorithm: str = "round_robin"
         health_check: str = "/health"
         # For manual setup - can specify existing LB
         external_ip: str | None = None
 
     class SSL(BaseModel):
+        """SSL config."""
+
         enabled: bool = True
         force_https: bool = True
         # For manual certs
@@ -84,9 +92,13 @@ class MonitoringConfig(BaseModel):
     """Monitoring configuration."""
 
     class Metrics(BaseModel):
+        """Metrics config."""
+
         netdata: bool = False
 
     class Logs(BaseModel):
+        """Logs config."""
+
         centralized: bool = False
 
     type: str = Field(
@@ -162,5 +174,6 @@ class PDSConfig(BaseModel):
         else:
             if not self.infrastructure.instances:
                 raise ValueError(
-                    f"Provider '{self.provider}' requires 'instances' count in infrastructure"
+                    f"Provider '{self.provider}' requires 'instances' "
+                    "count in infrastructure"
                 )

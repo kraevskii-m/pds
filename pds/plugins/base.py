@@ -26,7 +26,7 @@ class ServerInfo:
     ssh_key_path: str = "~/.ssh/id_rsa"
     ssh_port: int = 22
     hostname: str | None = None
-    tags: dict[str, str] = None
+    tags: dict[str, str] = {}
 
 
 @dataclass
@@ -37,13 +37,18 @@ class InfrastructureInfo:
     load_balancer_ip: str | None = None
     database_connection: str | None = None
     redis_connection: str | None = None
-    outputs: dict[str, Any] = None  # Additional provider-specific outputs
+    outputs: dict[str, Any] = {}  # Additional provider-specific outputs
 
 
 class PluginHook:
     """Represents a plugin hook for lifecycle events."""
 
     def __init__(self, name: str, priority: int = 100):
+        """Initialize a plugin hook.
+
+        :param name:
+        :param priority:
+        """
         self.name = name
         self.priority = priority
 
@@ -185,6 +190,7 @@ class PluginRegistry:
     """Registry for managing plugins."""
 
     def __init__(self):
+        """Initialize the plugins registry."""
         self._providers: dict[str, CloudProvider] = {}
         self._proxies: dict[str, ProxyPlugin] = {}
         self._monitoring: dict[str, MonitoringPlugin] = {}
